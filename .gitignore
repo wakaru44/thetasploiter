@@ -10,3 +10,6 @@ archive
 tmp
 *log
 
+# Security stuff
+*pem
+*pub

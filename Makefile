@@ -16,7 +16,12 @@ help:
 generate:
 	cd spinup; python kalinstance.py > kalinstance.json
 
+create:
+	cd spinup; bash tool_createstack.sh
 
+
+bump:
+	$(shell echo $(shell python -c "fh=open('spinup/version.md');c=fh.readline();n=int(c.strip()); print '{0:03d}'.format(n+1) " ) > spinup/version.md)
 
 
 
@@ -27,7 +32,7 @@ long-describe:
 
 describe:
 	#aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,Tags,PublicDnsName,KeyName]'  --output text | grep -B 1 stack-name
-	aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName]'  --output json --filters "Name=tag-value,Values=personal$(shell cat version.md )" | grep -v "\]\|\["
+	aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName]'  --output json --filters "Name=tag-value,Values=thetasploiter$(shell cat version.md )" | grep -v "\]\|\["
 
 
 todo:

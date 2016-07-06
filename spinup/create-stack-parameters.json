@@ -1,0 +1,23 @@
+{
+    "TemplateBody": "kalinstance.json", 
+    "Parameters": [
+        {
+            "ParameterKey": "KeyPair", 
+            "ParameterValue": "kalikey", 
+            "UsePreviousValue": true
+        }
+    ], 
+    "TimeoutInMinutes": 10, 
+    "OnFailure": "DO_NOTHING", 
+    "Tags": [
+        {
+            "Key": "Environment", 
+            "Value": "dev"
+        },
+        {
+          "Key":"Name",
+          "Value":"KaliNstance"
+        }
+    ]
+}
+
