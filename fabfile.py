@@ -59,13 +59,13 @@ def describe():
     show the minimum details required for an stack
     """
     query="""  'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName]' """
-    filters = """ "Name=tag-value,Values=thetasploiter$(cat version.md )" """
+    filters = """ "Name=tag-value,Values=KaliNstance$(cat version.md )" """
     output = do("""aws  ec2 describe-instances  --query {query}  --output json --filters {filters} """.format(query=query,filters=filters))
     import json
     details=json.loads(output)
     key = details[0][0][2]
     dns = details[0][0][1]
-    print("ssh -i ~/.ssh/{0} ubuntu@{1}".format(key,dns))
+    print("ssh -i ./{0}.pem ubuntu@{1}".format(key,dns))
 
 
 @task
@@ -172,6 +172,7 @@ def create_key(keyname="kalikey", dry=False):
 
     # first create a key using openssl
     do("openssl genrsa -out {0}.pem 2048".format(keyname))
+    do("chmod 400 {0}.pem".format(keyname))
 
     # then extract the public one
     do(" openssl rsa -in {0}.pem -pubout > {0}.pub".format(keyname))
