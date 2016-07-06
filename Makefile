@@ -6,6 +6,7 @@ help:
 	@echo "generate       - generate the cloud formation stack from py to json";
 	@echo "bump           - Bump the version of the stack, as it will be identified in AWS";
 	@echo "create         - make the call to the AWS cli to spin up the instance";
+	@echo "keygen         - create your personal keys";
 	@echo "spinup         - Do everything. From the generation to the creation";
 	@echo "describe       - describe AWS instances in a nice way";
 	@echo "long-describe  - describe AWS instances in a LONG way";
@@ -18,6 +19,9 @@ generate:
 
 create:
 	cd spinup; bash tool_createstack.sh
+
+keygen:
+	fab create_key
 
 
 bump:

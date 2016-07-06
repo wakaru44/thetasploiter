@@ -8,11 +8,16 @@ def do(command):
     """
     fabric is still uncomfortable
     """
+    output = None # by default
     try:
         output=local(command,capture=True)
         print output
     except Exception as pokemon:
         print pokemon
+        print "Standard output"
+        print output.stdout
+        print "Standard Error"
+        print output.stderr
 
     return output
 
@@ -32,7 +37,7 @@ def show_table(content):
         print "{:<8} {:<15}".format(k, num)
 
 
-def create_json_params(keyname=None):
+def create_json_params(keyname=None, dry=False):
     """
     receive the key name, and 
     return a json with the params for aws
@@ -40,7 +45,7 @@ def create_json_params(keyname=None):
     with open("kalikey.pub") as fh:
         c = fh.readlines()
         pub = "".join(map(lambda x: x.strip(), c[1:-1]))
-        params = { "KeyName":"kalikey", "DryRun":True, "PublicKeyMaterial":pub}
+        params = { "KeyName":"kalikey", "DryRun":dry, "PublicKeyMaterial":pub}
         import json
         return json.dumps(params)
 
@@ -158,10 +163,13 @@ def create_stack(dry=True):
 
 
 @task
-def create_key(keyname="kalikey"):
+def create_key(keyname="kalikey", dry=False):
     """
     get the key name and create the key, upload to aws and all that
     """
+    # we can run dry too
+    dryrun= "--dry-run" if dry else " "
+
     # first create a key using openssl
     do("openssl genrsa -out {0}.pem 2048".format(keyname))
 
@@ -169,10 +177,10 @@ def create_key(keyname="kalikey"):
     do(" openssl rsa -in {0}.pem -pubout > {0}.pub".format(keyname))
 
     # then put the public one in a command line params
-    params = create_json_params(keyname)
+    params = create_json_params(keyname, dry)
     with open("spinup/params.json","w") as fh:
         fh.writelines(params)
 
     # then run it against aws
-    do("aws ec2 import-key-pair --cli-input-json spinup/params.json")
+    do("aws ec2 import-key-pair {0} --cli-input-json file://spinup/params.json".format(dryrun))
 

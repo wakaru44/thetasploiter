@@ -13,3 +13,4 @@ tmp
 # Security stuff
 *pem
 *pub
+*params.json
