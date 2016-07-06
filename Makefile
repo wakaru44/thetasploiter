@@ -36,7 +36,7 @@ long-describe:
 
 describe:
 	#aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,Tags,PublicDnsName,KeyName]'  --output text | grep -B 1 stack-name
-	aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName]'  --output json --filters "Name=tag-value,Values=thetasploiter$(shell cat version.md )" | grep -v "\]\|\["
+	aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName]'  --output json --filters "Name=tag-value,Values=kalinstance$(shell cat version.md )" | grep -v "\]\|\["
 
 
 todo:
