@@ -1,0 +1,73 @@
+{
+    "Outputs": {
+        "InstanceAccess": {
+            "Description": "Command to use to SSH to instance",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "ssh -i ",
+                        {
+                            "Ref": "KeyPair"
+                        },
+                        " ubuntu@",
+                        {
+                            "Fn::GetAtt": [
+                                "ThetasploiterInstance",
+                                "PublicDnsName"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        }
+    },
+    "Parameters": {
+        "KeyPair": {
+            "Description": "The name of the keypair to use for SSH access",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "ThetasploiterInstance": {
+            "Properties": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sdb1",
+                        "Ebs": {
+                            "VolumeSize": "16"
+                        }
+                    }
+                ],
+                "ImageId": "ami-5a60c229",
+                "InstanceType": "m1.small",
+                "KeyName": {
+                    "Ref": "KeyPair"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "ThetasploiterSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": "\n#!/bin/bash\ncurl http://juanantonio.fm/HIBOY\necho \"this should be a script or sumzin\"\n"
+                }
+            },
+            "Type": "AWS::EC2::Instance"
+        },
+        "ThetasploiterSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Allow access to the Thetasploiter project instances from anywhere",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "22",
+                        "IpProtocol": "tcp",
+                        "ToPort": "22"
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        }
+    }
+}
