@@ -6,6 +6,8 @@ Spin up a minimal linux instance with [Metasploit](metasploit.com), add some mod
 - The configuration is done with Ansible
 - And the scaner will be one day done with a custom Python script. #TODO
 
+![theta symbol](http://www.wallquotes.com/sites/default/files/arts0158-88.png)
+
 # Usage
 
 To install, you can use the damn curl|bash
