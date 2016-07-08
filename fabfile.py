@@ -63,9 +63,31 @@ def describe():
     output = do("""aws  ec2 describe-instances  --query {query}  --output json --filters {filters} """.format(query=query,filters=filters))
     import json
     details=json.loads(output)
-    key = details[0][0][2]
-    dns = details[0][0][1]
-    print("ssh -i ./{0}.pem ubuntu@{1}".format(key,dns))
+    d={}
+    d["key"] = details[0][0][2]
+    d["dns"] = details[0][0][1]
+    d["id"]  = details[0][0][0]
+    print("ssh -i ./{0}.pem ubuntu@{1}".format(d["key"],d["dns"]))
+    return d
+
+@task
+def start():
+    """
+    start the instance in this stack
+    """
+    instance_data = describe()
+    print instance_data
+    do("aws ec2 start-instances --instance-ids {0}".format(instance_data["id"]))
+
+
+@task
+def stop():
+    """
+    stop the instance in this stack
+    """
+    instance_data = describe()
+    print instance_data
+    do("aws ec2 stop-instances --instance-ids {0}".format(instance_data["id"]))
 
 
 @task
