@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- utf-8 -*-
 
-from fabric.api import local,task
+from fabric.api import local,task, settings
 
 
 def do(command):
@@ -10,8 +10,10 @@ def do(command):
     """
     output = None # by default
     try:
-        output=local(command,capture=True)
-        print output
+        with settings(warn_only=True):
+            output=local(command,capture=True)
+            print output.stdout
+            print output.stderr
     except Exception as pokemon:
         print pokemon
         print "Standard output"
@@ -42,10 +44,14 @@ def create_json_params(keyname=None, dry=False):
     receive the key name, and 
     return a json with the params for aws
     """
-    with open("kalikey.pub") as fh:
+    with open("{0}.pub".format(keyname)) as fh:
         c = fh.readlines()
         pub = "".join(map(lambda x: x.strip(), c[1:-1]))
-        params = { "KeyName":"kalikey", "DryRun":dry, "PublicKeyMaterial":pub}
+        params = {
+                "KeyName":keyname,
+                "DryRun":dry,
+                "PublicKeyMaterial":pub
+                }
         import json
         return json.dumps(params)
 
@@ -54,12 +60,13 @@ def create_json_params(keyname=None, dry=False):
 
 
 @task
-def describe():
+def describe(project_name="KaliNstance"):
     """
     show the minimum details required for an stack
     """
-    query="""  'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName]' """
-    filters = """ "Name=tag-value,Values=KaliNstance$(cat version.md )" """
+    query="""  'Reservations[*].Instances[*].[InstanceId,PublicDnsName,KeyName,State.Name]' """
+    filters = """ "Name=tag-value,Values={0}$(cat version.md )" """.format(
+            project_name)
     output = do("""aws  ec2 describe-instances  --query {query}  --output json --filters {filters} """.format(query=query,filters=filters))
     import json
     details=json.loads(output)
@@ -140,7 +147,10 @@ def con():
     """Print connection details"""
     # The public name of the instance
     instance = {}
-    instance["dns"] = do(r"""aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[PublicDnsName]'  --output json --filters "Name=tag-value,Values=thetasploiter$( cat version.md )" | grep -v "\]\|\[" """ )
+    instance["dns"] = do(r"""aws  ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].[PublicDnsName]' \
+            --output json \
+            --filters "Name=tag-value,Values=personal$( cat version.md )" | grep -v "\]\|\[" """ )
     print("Instance Id: {0}".format(instance["dns"]))
     if len(instance["dns"]) < 3:
         print("ERROR: the instance might not yet started. run 'fab start_instance'")
@@ -157,7 +167,7 @@ def con():
     print(ssh_keypath)
     print("\nSorry, you have to copy paste that manually:\n")
     print("\tssh -F ssh_config -i {0}   ubuntu@{1}\n".format(ssh_keypath,instance["dns"]))
-    local("\tssh -F ssh_config -i {0}   ubuntu@{1}\n".format(ssh_keypath,instance["dns"]))
+    #local("\tssh -F ssh_config -i {0}   ubuntu@{1}\n".format(ssh_keypath,instance["dns"]))
 
 
 @task
@@ -167,12 +177,14 @@ def create_stack(dry=True):
     """
     print( "Any parameter passed after calling the script will be appended to the aws cloudformation command")
     dry_run = "--dry-run" if dry else " "
-    script = r"""
-        NAME=thetasploiter$(cat version.md)
+    script = r"""cd spinup
+        NAME=kalinstance$(cat version.md)
         TMPL=kalinstance.json
         CFNPARAMS=create-stack-parameters.json
-        aws {0} cloudformation create-stack  --stack-name $NAME --template-body file://$TMPL  --cli-input-json file://$CFNPARAMS ${{@:2}}  | tee -a stack_id.log
+        aws {0} cloudformation create-stack  --stack-name $NAME --template-body file://$TMPL  --cli-input-json file://$CFNPARAMS | tee -a stack_id.log
     """.format(dry_run)
+        # This lines is causing problems when using bash or others. it has zsh substitutions
+        #aws {0} cloudformation create-stack  --stack-name $NAME --template-body file://$TMPL  --cli-input-json file://$CFNPARAMS ${{@:2}}  | tee -a stack_id.log
     # and run all of it in a single line
     # TODO: How to test the creation of cloud formation without real creation?
     do( 
