@@ -36,7 +36,7 @@ magic: bump generate create describe
 
 
 long-describe:
-	aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,Tags,PublicDnsName,KeyName]'
+	aws  ec2 describe-instances  --query 'Reservations[*].Instances[*].[InstanceId,Tags,PublicDnsName,KeyName,State.Name]'
 
 
 todo:
